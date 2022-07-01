@@ -1,0 +1,16 @@
+# Field image location
+# Resolution: 3501 x 3503
+field_image_file: 'h2_course.jpg'
+
+# Image file scaling and center 
+x_scale: 550
+y_scale: 550
+x_center_img: 1847
+y_center_img: 1847
+img_view_scale: 0.22
+
+# Default robot start location
+# Can be overriden in launch file
+Xr_init: -2.69
+Yr_init: -0.57
+Theta_init: 270.0

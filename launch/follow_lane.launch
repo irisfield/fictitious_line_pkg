@@ -1,0 +1,32 @@
+<launch>
+
+  <!-- load the map
+  <param name="map_dir" value="$(find fictitious_line_pkg)/map" />
+  <rosparam command="load" file="$(find fictitious_line_pkg)/map/h_course.yaml" />
+  -->
+
+  <!-- load the robot
+  <rosparam command="load" file="$(find simple_sim_circleroad)/robot/ackermann.yaml" />
+  -->
+
+  <!--
+  <include file="$(find simple_sim)/launch/simple_sim.launch">
+    <arg name="show_rviz" value="false" />
+    <arg name="show_kb_teleop" value="false" />
+  </include>
+  -->
+
+  <node pkg="fictitious_line_pkg" name="detect_yellow" type="detect_yellow.py" required="true" output="screen">
+    <param name = "imgtopic_name" type = "str" value = "/camera/image_raw" />
+  </node>
+
+  <node pkg="fictitious_line_pkg" name="follow_line" type="follow_line.py" required="true" output="screen">
+    <param name="imgtopic_name" type="str" value="/camera/image_raw" />
+  </node>
+
+  <node pkg="fictitious_line_pkg" name="follow_line_eval" type="follow_line_eval.py" required="true" output="screen">
+    <param name="imgtopic_name" type="str" value="/camera/image_raw" />
+  </node>
+
+</launch>
+

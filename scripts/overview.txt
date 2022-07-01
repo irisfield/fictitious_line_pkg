@@ -1,0 +1,3 @@
+1. detect_yellow.py subscribes to the camera node and publishes the yellow_detected node
+2. follow_line.py subscribes to the camera node and to yellow_detected node; then publishes to /cmd_vel, start_test, and steer_err nodes
+3. follow_line_eval.py subscribes to the start_test, yellow_detected, and steer_err nodes.
