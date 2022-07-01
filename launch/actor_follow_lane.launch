@@ -2,16 +2,14 @@
 
 <launch>
 
-  <!-- launch the drive-by-write system
+  <!-- launch the drive-by-write system -->
   <arg name="sys" default="true" />
   <group if="$(arg sys)">
     <include file="$(find dbw_polaris_can)/launch/dbw.launch" />
   </group>
-  -->
 
-  <!-- connect to the vehicle's camera
+  <!-- connect to the vehicle's camera -->
   <include file="$(find avt_vimba_camera)/launch/mono_camera.launch" />
-  -->
 
   <!-- launch the dynamic reconfigure GUI -->
   <node pkg="rqt_reconfigure" name="rqt_console" type="rqt_reconfigure" args="-t" />

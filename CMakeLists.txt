@@ -9,6 +9,7 @@ project(fictitious_line_pkg)
 ## is used, also find other catkin packages
 find_package(catkin REQUIRED COMPONENTS
   cv_bridge
+  dbw_polaris_msgs
   dynamic_reconfigure
   geometry_msgs
   roscpp
@@ -17,14 +18,15 @@ find_package(catkin REQUIRED COMPONENTS
   std_msgs
 )
 
+## Generate dynamic reconfigure parameters in the 'cfg' folder
 generate_dynamic_reconfigure_options(
-   cfg/DetectYellow.cfg
-   cfg/FollowLine.cfg
- )
+  cfg/LineFollow.cfg
+  cfg/ControlUnit.cfg
+  cfg/DetectYellow.cfg
+)
 
 ## System dependencies are found with CMake's conventions
 # find_package(Boost REQUIRED COMPONENTS system)
-
 
 ## Uncomment this if the package has a setup.py. This macro ensures
 ## modules and global scripts declared therein get installed
@@ -79,7 +81,7 @@ generate_dynamic_reconfigure_options(
 ## Generate added messages and services with any dependencies listed here
 # generate_messages(
 #   DEPENDENCIES
-#   geometry_msgs#   sensor_msgs#   std_msgs
+#   dbw_polaris_msgs#   geometry_msgs#   sensor_msgs#   std_msgs
 # )
 
 ################################################
@@ -96,12 +98,6 @@ generate_dynamic_reconfigure_options(
 ##   * uncomment the "generate_dynamic_reconfigure_options" section below
 ##     and list every .cfg file to be processed
 
-## Generate dynamic reconfigure parameters in the 'cfg' folder
-# generate_dynamic_reconfigure_options(
-#   cfg/DynReconf1.cfg
-#   cfg/DynReconf2.cfg
-# )
-
 ###################################
 ## catkin specific configuration ##
 ###################################
@@ -114,7 +110,7 @@ generate_dynamic_reconfigure_options(
 catkin_package(
 #  INCLUDE_DIRS include
 #  LIBRARIES fictitious_line_pkg
-#  CATKIN_DEPENDS cv_bridge dynamic_reconfigure geometry_msgs roscpp rospy sensor_msgs std_msgs
+#  CATKIN_DEPENDS cv_bridge dbw_polaris_msgs dynamic_reconfigure geometry_msgs roscpp rospy sensor_msgs std_msgs
 #  DEPENDS system_lib
 )
 
