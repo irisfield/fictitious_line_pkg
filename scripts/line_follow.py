@@ -28,14 +28,19 @@ def image_callback(camera_image):
         cv_image = CvBridge().imgmsg_to_cv2(camera_image, "bgr8")
     except CvBridgeError:
         print(CvBridgeError)
+    width = cv_image.shape[0]
+    height = cv_image.shape[1]
 
     # resize the image
     cv_image = cv2.resize(cv_image, None, fx=0.7, fy=0.7, interpolation=cv2.INTER_AREA)
+
+    cv_image = cv2.medianBlur(cv_image, 15)
 
     # apply filters to the image
     balanced_image = apply_white_balance(cv_image)
     filtered_balanced_image = apply_filters(balanced_image)
     filtered_balanced_image = get_region_of_interest(filtered_balanced_image)
+    cv_image = get_region_of_interest(balanced_image)
 
     ###################################################################################################
     lines = cv2.HoughLinesP(filtered_balanced_image, rho=6, theta=(np.pi / 180),
@@ -100,9 +105,9 @@ def image_callback(camera_image):
     middle_line_edge = cv2.addWeighted(cv_image, 0.8, copy_image, 1, 0)
 
     # convert the image to grayscale
-    hsv = cv2.cvtColor(middle_line_edge,cv2.COLOR_BGR2HSV)
+    hsv = cv2.cvtColor(middle_line_edge, cv2.COLOR_BGR2HSV)
     thresh1 = cv2.inRange(hsv,np.array((0, 80, 80)), np.array((20, 255, 255)))
-    thresh2 = cv2.inRange(hsv,np.array((150, 80, 80)), np.array((180, 255, 255)))
+    thresh2 = cv2.inRange(hsv,np.array((160, 80, 80)), np.array((170, 255, 255)))
     thresh =  cv2.bitwise_or(thresh1, thresh2)
 
     # find the contours in the binary image
@@ -143,7 +148,7 @@ def image_callback(camera_image):
     (width, height, _) = cv_image.shape
 
     # offset the x position of the vehicle to follow the lane
-    cx -= 170
+    # cx -= 170
 
     pub_yaw_rate(cv_image, cx, cy, width, height)
 
@@ -188,9 +193,11 @@ def perspective_warp(image,
 
 def get_region_of_interest(image):
 
-    width, height = image.shape
-    height = height / 4
+    width = image.shape[0]
+    height = image.shape[1]
+
     width = width / 4
+    height = height / 4
 
     proportion = 1.604
     roi = np.array([[(112 * proportion, ((84 * proportion) + 80)) , (0 , 336 * proportion),(448 * proportion, 336 * proportion),(336 * proportion, ((84 * proportion) + 80))]], dtype = np.int32)
@@ -199,7 +206,7 @@ def get_region_of_interest(image):
     cv2.fillPoly(mask, roi, 255)
 
     # return the image with the region of interest
-    return cv2.bitwise_and(image , mask)
+    return cv2.bitwise_and(image, mask)
 
 def apply_filters(cv_image):
 
