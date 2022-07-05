@@ -211,19 +211,19 @@ def apply_filters(cv_image):
 
 def get_region_of_interest(image):
 
-    width = image.shape[0]
-    height = image.shape[1]
+    width = image.shape[1]
+    height = image.shape[0]
 
-    width = width / 4
-    height = height / 4
+    width = width / 8
+    height = height / 2
 
-    proportion = 1.604
     roi = np.array([[
 
-                       [112 * proportion, ((84 * proportion) + 80)],
-                       [0 , 336 * proportion],
-                       [448 * proportion, 336 * proportion],
-                       [336 * proportion, ((84 * proportion) + 80)]
+                       [0, 538],
+                       [0, 400],
+                       [(width*3)-100 , height],
+                       [width*5, height],
+                       [width*8, height*2]
 
                    ]], dtype = np.int32)
 
