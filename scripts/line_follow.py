@@ -47,7 +47,7 @@ def image_callback(camera_image):
     filtered_image_with_roi = get_region_of_interest(filtered_image)
 
     ###################################################################################################
-    lines = cv2.HoughLinesP(filtered_image, rho=6, theta=(np.pi / 180),
+    lines = cv2.HoughLinesP(filtered_image_with_roi, rho=6, theta=(np.pi / 180),
                             threshold=15, lines=np.array([]), minLineLength=20, maxLineGap=30)
 
     left_line_x = []
@@ -73,37 +73,51 @@ def image_callback(camera_image):
         pass
 
     # just below the horizon
-    min_y = cv_image.shape[0] * (3 / 5)
+    min_y = filtered_image_with_roi.shape[0] * (3 / 5)
+    print(f"Minimum y coordinate:", min_y)
     # the bottom of the image
-    max_y = cv_image.shape[0]
-    
-    try:
+    max_y = filtered_image_with_roi.shape[0]
+    print(f"Maximum y coordinate:",max_y)
+    # middle_line_y_start = min_y
+    # middle_line_y_end = max_y
+
+    poly_left = 0
+    poly_right = 0
+    poly_middle = 0
+
+    if len(left_line_x) != 0 and len(left_line_y) != 0:
         poly_left = np.poly1d(np.polyfit(left_line_y, left_line_x, deg=1))
-        left_x_start = int(poly_left(max_y))
-        left_x_end = int(poly_left(min_y))
+        left_line_x_start = int(poly_left(max_y))
+        left_line_x_end = int(poly_left(min_y))
+        print(f"Left line x coordinate:",left_line_x)
+        print(f"Left line y coordinate:",left_line_y)
+        print(f"Poly left:",poly_left)
+        print(f"x coordinate Start point left:",left_line_x_start)
+        print(f"x coordinate End point left:",left_line_x_end)
+    else:
+        left_line_x_start = int(width/5)
+        left_line_x_end = int(width/3)
 
+
+    if len(right_line_x) != 0 and len(right_line_y) != 0:
         poly_right = np.poly1d(np.polyfit(right_line_y, right_line_x, deg=1))
+        right_line_x_start = int(poly_right(max_y))
+        right_line_x_end = int(poly_right(min_y))
+    else:
+        right_line_x_start = int(width/5)
+        right_line_x_end = int(width/3)
 
-        right_x_start = int(poly_right(max_y))
-        right_x_end = int(poly_right(min_y))
-
+    if poly_left != 0 and poly_right != 0:
         poly_middle = np.poly1d(np.polyfit(poly_left, poly_right, deg=1))
-        middle_x_start = int(poly_middle(max_y))
-        middle_x_end = int(poly_middle(max_y))
-    
-    except TypeError:
-        print("Hough Lines aren't detected")
-        left_x_start = int(0)
-        left_x_end = int(0)
-        right_x_start = int(0)
-        right_x_end = int(0)
-        middle_x_start = int(0)
-        middle_x_end = int(0)
-        max_y = int(0)
-        min_y = int(0)
+        middle_line_x_start = int(poly_middle(max_y))
+        middle_line_x_end = int(poly_middle(max_y))
+    else:
+        middle_line_x_start = int(width/2)
+        middle_line_x_end = int(width/2)
 
-    side_lines= [[ [left_x_start, max_y, left_x_end, min_y], [right_x_start, max_y, right_x_end, min_y] ]]
-    middle_line= [[ [middle_x_start, max_y, middle_x_end, min_y] ]]
+
+    side_lines= [[ [left_line_x_start, max_y, left_line_x_end, min_y], [right_line_x_start, max_y, right_line_x_end, min_y] ]]
+    middle_line= [[ [middle_line_x_start, max_y, middle_line_x_end, min_y] ]]
     
 
     line_image = np.copy(cv_image) * 0
@@ -169,8 +183,11 @@ def image_callback(camera_image):
 
     pub_yaw_rate(cv_image, cx, cy, height, width)
 
+    cv_image1 = get_region_of_interest(cv_image)
+
     cv2.imshow("CV Image", cv_image)
     cv2.imshow("Filtered Image with ROI", filtered_image_with_roi)
+    cv2.imshow("Image with ROI", cv_image1)
     cv2.imshow("Hough Lines", lines_edges)
     cv2.imshow("Middle Hough Lines", middle_line_edge)
     cv2.waitKey(3)
@@ -223,7 +240,8 @@ def apply_filters(cv_image):
 
     # smooth out the image
     kernel = np.ones((5, 5), np.float32) / 25
-    smoothed_gray_image = cv2.filter2D(blur, -1, kernel)
+    img_dilation = cv2.dilate(blur, kernel, iterations=1)
+    smoothed_gray_image = cv2.filter2D(img_dilation, -1, kernel)
 
     # find and return the edges in in smoothed image
     return cv2.Canny(smoothed_gray_image, 200, 255)
@@ -233,16 +251,17 @@ def get_region_of_interest(image):
     width = image.shape[1]
     height = image.shape[0]
 
-    width = width / 4
-    height = height / 2
+    width = width / 8
+    height = height / 8
 
     roi = np.array([[
 
-                       [0, 538],
-                       [0, 400],
-                       [(width*3)-100 , height],
-                       [width*5, height],
-                       [width*8, height*2]
+                       [0, height*8],
+                       [0, height*5],
+                       [width*2, (height*4)-30],
+                       [width*5 , (height*4)-30],
+                       [width*8, height*7],
+                       [width*8, height*8]
 
                    ]], dtype = np.int32)
 
@@ -313,7 +332,7 @@ if __name__ == "__main__":
 
     rospy.Subscriber("/camera/image_raw", Image, image_callback)
     
-    rate = rospy.Rate(8)
+    rate = rospy.Rate(10)
     yaw_rate_pub = rospy.Publisher("yaw_rate", Float32, queue_size=1)
 
     dynamic_reconfigure_server = Server(LineFollowConfig, dynamic_reconfigure_callback)
