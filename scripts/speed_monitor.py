@@ -61,7 +61,6 @@ if __name__ == "__main__":
     rospy.init_node("speed_monitor", anonymous=True)
 
     rospy.Subscriber("yellow_detected", Bool, detect_yellow_callback)
-    # rospy.Subscriber("/vehicle/cmd_vel", Twist, cmd_vel_callback)
     rospy.Subscriber("/vehicle/steering_report", SteeringReport, steering_report_callback)
 
     try:
