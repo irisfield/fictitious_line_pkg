@@ -114,6 +114,8 @@ if __name__ == "__main__":
     cmd_vel_pub = rospy.Publisher("/vehicle/cmd_vel", Twist, queue_size=1)
     enable_drive_pub = rospy.Publisher("/vehicle/enable", Empty, queue_size=1)
 
+    #cmd_vel_pub = rospy.Publisher("/cmd_vel", Twist, queue_size=1)
+
     dynamic_reconfigure_server = Server(ControlUnitConfig, dynamic_reconfigure_callback)
 
     # publish velocity message
