@@ -78,8 +78,8 @@ def image_callback(camera_image):
         right_line_x_start = int(poly_right(max_y))
         right_line_x_end = int(poly_right(min_y))
     else:
-        right_line_x_start = int(width/1)
-        right_line_x_end = int(width/2)
+        right_line_x_start = int(width/3)
+        right_line_x_end = int(width/4)
 
     right_lines= [[ [right_line_x_start, max_y, right_line_x_end, min_y] ]]
 
@@ -89,7 +89,7 @@ def image_callback(camera_image):
         for x1, y1, x2, y2 in line:
             print(x1, y1, x2, y2)
             cv2.line(line_image, (x1, y1), (x2, int(y2)), (255, 0, 0), 10)
-            cv2.line(line_image, (x1-170, y1), (x2-170, int(y2)), (0, 0, 255), 10)
+            cv2.line(line_image, (x1-300, y1), (x2-300, int(y2)), (0, 0, 255), 10)
 
     #lines_edges = cv2.addWeighted(cv_image, 0.8, line_image, 1, 0)
     middle_line_edge = cv2.addWeighted(cv_image, 0.8, line_image, 1, 0)
@@ -143,9 +143,9 @@ def image_callback(camera_image):
 
     cv_image1 = get_region_of_interest(cv_image)
 
-    cv2.imshow("CV Image", cv_image)
+    #cv2.imshow("CV Image", cv_image)
     cv2.imshow("Filtered Image with ROI", filtered_image_with_roi)
-    cv2.imshow("Image with ROI", cv_image1)
+    #cv2.imshow("Image with ROI", cv_image1)
     #cv2.imshow("Hough Lines", lines_edges)
     cv2.imshow("Middle Hough Lines", middle_line_edge)
     cv2.waitKey(3)
@@ -168,7 +168,6 @@ def apply_white_balance(cv_image):
 
 def apply_filters(cv_image):
 
-    # helps remove some of the yellow from the sunlight
     balanced_image = apply_white_balance(cv_image)
 
     # one more time
@@ -193,13 +192,10 @@ def apply_filters(cv_image):
 
     # convert image to grayscale
     gray_balanced_image_with_mask = cv2.cvtColor(balanced_image_with_mask, cv2.COLOR_BGR2GRAY)
-    equ = cv2.equalizeHist(gray_balanced_image_with_mask)
-    blur = cv2.medianBlur(equ, 15)
 
     # smooth out the image
     kernel = np.ones((5, 5), np.float32) / 25
-    img_dilation = cv2.dilate(blur, kernel, iterations=1)
-    smoothed_gray_image = cv2.filter2D(img_dilation, -1, kernel)
+    smoothed_gray_image = cv2.filter2D(gray_balanced_image_with_mask, -1, kernel)
 
     # find and return the edges in in smoothed image
     return cv2.Canny(smoothed_gray_image, 200, 255)

@@ -208,7 +208,6 @@ def apply_white_balance(cv_image):
 
 def apply_filters(cv_image):
 
-    # helps remove some of the yellow from the sunlight
     balanced_image = apply_white_balance(cv_image)
 
     # one more time
@@ -233,13 +232,10 @@ def apply_filters(cv_image):
 
     # convert image to grayscale
     gray_balanced_image_with_mask = cv2.cvtColor(balanced_image_with_mask, cv2.COLOR_BGR2GRAY)
-    equ = cv2.equalizeHist(gray_balanced_image_with_mask)
-    blur = cv2.medianBlur(equ, 15)
 
     # smooth out the image
     kernel = np.ones((5, 5), np.float32) / 25
-    img_dilation = cv2.dilate(blur, kernel, iterations=1)
-    smoothed_gray_image = cv2.filter2D(img_dilation, -1, kernel)
+    smoothed_gray_image = cv2.filter2D(gray_balanced_image_with_mask, -1, kernel)
 
     # find and return the edges in in smoothed image
     return cv2.Canny(smoothed_gray_image, 200, 255)

@@ -21,7 +21,7 @@
   <node pkg="fictitious_line_pkg" name="control_unit" type="control_unit.py" required="true" output="screen" />
 
   <!-- launch the line follow node -->
-  <node pkg="fictitious_line_pkg" name="line_follow" type="line_follow.py" required="true" output="screen" />
+  <node pkg="fictitious_line_pkg" name="line_follow_shifted" type="line_follow_shifted.py" required="true" output="screen" />
 
   <!-- launch the speed monitor node -->
   <node pkg="fictitious_line_pkg" name="speed_monitor" type="speed_monitor.py" required="true" output="screen" />
