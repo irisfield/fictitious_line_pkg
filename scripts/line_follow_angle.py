@@ -45,10 +45,10 @@ def image_callback(camera_image):
     # apply filters to the image
     filtered_image = apply_filters(cv_image)
     filtered_image_with_roi = get_region_of_interest(filtered_image)
-
     ###################################################################################################
     lines = cv2.HoughLinesP(filtered_image_with_roi, rho=6, theta=(np.pi / 180),
                             threshold=15, lines=np.array([]), minLineLength=20, maxLineGap=30)
+
     left_line_x = []
     left_line_y = []
     right_line_x = []
@@ -73,12 +73,8 @@ def image_callback(camera_image):
 
     # just below the horizon
     min_y = filtered_image_with_roi.shape[0] * (3 / 5)
-    print(f"Minimum y coordinate:", min_y)
     # the bottom of the image
     max_y = filtered_image_with_roi.shape[0]
-    print(f"Maximum y coordinate:",max_y)
-    # middle_line_y_start = min_y
-    # middle_line_y_end = max_y
 
     poly_left = 0
     poly_right = 0
@@ -88,11 +84,11 @@ def image_callback(camera_image):
         poly_left = np.poly1d(np.polyfit(left_line_y, left_line_x, deg=1))
         left_line_x_start = int(poly_left(max_y))
         left_line_x_end = int(poly_left(min_y))
-        print(f"Left line x coordinate:",left_line_x)
-        print(f"Left line y coordinate:",left_line_y)
-        print(f"Poly left:",poly_left)
-        print(f"x coordinate Start point left:",left_line_x_start)
-        print(f"x coordinate End point left:",left_line_x_end)
+        # print(f"Left line x coordinate:",left_line_x)
+        # print(f"Left line y coordinate:",left_line_y)
+        # print(f"Poly left:",poly_left)
+        # print(f"x coordinate Start point left:",left_line_x_start)
+        # print(f"x coordinate End point left:",left_line_x_end)
     else:
         left_line_x_start = int(width/5)
         left_line_x_end = int(width/3)
@@ -128,48 +124,11 @@ def image_callback(camera_image):
         for x1, y1, x2, y2 in line:
             cv2.line(line_image, (x1, y1), (x2, int(y2)), (0, 0, 255), 10)
             cv2.line(copy_image, (x1, y1), (x2, int(y2)), (0, 0, 255), 10)
+            cx = abs(x2)
+            print(f"cx:", cx)
 
     lines_edges = cv2.addWeighted(cv_image, 0.9, line_image, 1, 0)
     middle_line_edge = cv2.addWeighted(cv_image, 0.9, copy_image, 1, 0)
-
-    # convert the image to grayscale
-    hsv = cv2.cvtColor(middle_line_edge, cv2.COLOR_BGR2HSV)
-    thresh1 = cv2.inRange(hsv,np.array((0, 150, 150)), np.array((20, 255, 255)))
-    thresh2 = cv2.inRange(hsv,np.array((150, 150, 150)), np.array((180, 255, 255)))
-    thresh =  cv2.bitwise_or(thresh1, thresh2)
-
-    # find the contours in the binary image
-    contours, _ = cv2.findContours(thresh, cv2.RETR_LIST, cv2.CHAIN_APPROX_SIMPLE)
-
-    # initialize the variables for computing the centroid and finding the largest contour
-    cx = 0
-    cy = 0
-    max_contour = []
-
-    if len(contours) != 0:
-        # find the largest contour by its area
-        max_contour = max(contours, key = cv2.contourArea)
-
-        # https://learnopencv.com/find-center-of-blob-centroid-using-opencv-cpp-python/
-        M = cv2.moments(max_contour)
-
-        if M["m00"] != 0:
-            # compute the x and y coordinates of the centroid
-            cx = int(M["m10"] / M["m00"])
-            cy = int(M["m01"] / M["m00"])
-            print(f"cx:", cx)
-    else:
-        # rospy.loginfo(f"empty contours: {contours}")
-        pass
-
-    try:
-        # draw the obtained contour lines (or the set of coordinates forming a line) on the original image
-        cv2.drawContours(middle_line_edge, max_contour, -1, (0, 255, 0), 10)
-    except UnboundLocalError:
-        rospy.loginfo("max contour not found")
-
-    # draw a circle at centroid (https://www.geeksforgeeks.org/python-opencv-cv2-circle-method)
-    cv2.circle(middle_line_edge, (cx, cy), 8, (180, 0, 0), -1)  # -1 fill the circle
 
     ###################################################################################################
 
@@ -179,7 +138,7 @@ def image_callback(camera_image):
     # offset the x position of the vehicle to follow the lane
     # cx -= 170
 
-    pub_yaw_rate(cv_image, cx, cy, height, width)
+    pub_yaw_rate(cx, height, width)
 
     cv_image1 = get_region_of_interest(cv_image)
 
@@ -269,9 +228,6 @@ def get_region_of_interest(image):
     # return the image with the region of interest
     return cv2.bitwise_and(image, mask)
 
-    # return the image with the region of interest
-    return cv2.bitwise_and(image, mask)
-
 def perspective_warp(image,
                      destination_size=(1280, 720),
                      source=np.float32([(0.43, 0.65), (0.58, 0.65), (0.1, 1), (1, 1)]),
@@ -293,7 +249,7 @@ def perspective_warp(image,
 
 ################### algorithms ###################
 
-def pub_yaw_rate(cv_image, cx, cy, width, height):
+def pub_yaw_rate(cx, width, height):
 
     # compute the coordinates for the center the vehicle's camera view
     camera_center_y = (height / 2)
