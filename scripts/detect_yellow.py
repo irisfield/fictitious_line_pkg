@@ -34,7 +34,6 @@ def image_callback(camera_image):
     upper_bounds = (RC.hue_h, RC.sat_h, RC.val_h) # upper bounds of h, s, v for the target color
     image_mask = cv2.inRange(hsv_image, lower_bounds, upper_bounds)
 
-
     # find contours in the binary (black and white) image
     contours, _ = cv2.findContours (image_mask, cv2.RETR_LIST, cv2.CHAIN_APPROX_SIMPLE)
 

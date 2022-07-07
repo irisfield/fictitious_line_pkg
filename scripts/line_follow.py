@@ -115,10 +115,8 @@ def image_callback(camera_image):
         middle_line_x_start = int(width/2)
         middle_line_x_end = int(width/2)
 
-
     side_lines= [[ [left_line_x_start, max_y, left_line_x_end, min_y], [right_line_x_start, max_y, right_line_x_end, min_y] ]]
     middle_line= [[ [middle_line_x_start, max_y, middle_line_x_end, min_y] ]]
-    
 
     line_image = np.copy(cv_image) * 0
     copy_image = np.copy(cv_image) * 0
@@ -191,7 +189,7 @@ def image_callback(camera_image):
     cv2.imshow("Hough Lines", lines_edges)
     cv2.imshow("Middle Hough Lines", middle_line_edge)
     cv2.waitKey(3)
-    rate.sleep()
+    #rate.sleep()
 
 ################### filters ###################
 
@@ -331,8 +329,8 @@ if __name__ == "__main__":
     rospy.init_node("follow_line", anonymous=True)
 
     rospy.Subscriber("/camera/image_raw", Image, image_callback)
-    
-    rate = rospy.Rate(10)
+
+    #rate = rospy.Rate(10)
     yaw_rate_pub = rospy.Publisher("yaw_rate", Float32, queue_size=1)
 
     dynamic_reconfigure_server = Server(LineFollowConfig, dynamic_reconfigure_callback)
