@@ -249,7 +249,7 @@ def perspective_warp(image,
 def pub_yaw_rate(cv_image, cx, cy, width, height):
 
     # compute the coordinates for the center the vehicle's camera view
-    camera_center_y = (height / 2)
+    camera_center_y = (height / 4)*3
     camera_center_x = (width / 2)
 
     # compute the difference between the x and y coordinates of the centroid and the vehicle's camera center
