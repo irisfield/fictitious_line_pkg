@@ -78,8 +78,8 @@ def image_callback(camera_image):
         right_line_x_start = int(poly_right(max_y))
         right_line_x_end = int(poly_right(min_y))
     else:
-        right_line_x_start = int(width/6)
-        right_line_x_end = int(width/8)
+        right_line_x_start = int(width/1)
+        right_line_x_end = int(width/2)
 
     right_lines= [[ [right_line_x_start, max_y, right_line_x_end, min_y] ]]
 

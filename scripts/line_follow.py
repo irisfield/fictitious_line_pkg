@@ -94,8 +94,8 @@ def image_callback(camera_image):
         print(f"x coordinate Start point left:",left_line_x_start)
         print(f"x coordinate End point left:",left_line_x_end)
     else:
-        left_line_x_start = int(width/5)
-        left_line_x_end = int(width/3)
+        left_line_x_start = int(width/20)
+        left_line_x_end = int(width/17)
 
 
     if len(right_line_x) != 0 and len(right_line_y) != 0:
@@ -103,19 +103,19 @@ def image_callback(camera_image):
         right_line_x_start = int(poly_right(max_y))
         right_line_x_end = int(poly_right(min_y))
     else:
-        right_line_x_start = int(width/5)
-        right_line_x_end = int(width/3)
+        right_line_x_start = int(width/1)
+        right_line_x_end = int(width/2)
 
     if poly_left != 0 and poly_right != 0:
         poly_middle = np.poly1d(np.polyfit(poly_left, poly_right, deg=1))
-        middle_line_x_start = int(poly_middle(max_y))
-        middle_line_x_end = int(poly_middle(max_y))
+        middle_line_x_bottom = int(poly_middle(max_y))
+        middle_line_x_top = int(poly_middle(max_y))
     else:
-        middle_line_x_start = int(width/2)
-        middle_line_x_end = int(width/3)
+        middle_line_x_bottom = int(width/2)
+        middle_line_x_top = int(width/3)
 
     side_lines= [[ [left_line_x_start, max_y, left_line_x_end, min_y], [right_line_x_start, max_y, right_line_x_end, min_y] ]]
-    middle_line= [[ [middle_line_x_start, max_y, middle_line_x_end, min_y] ]]
+    middle_line= [[ [middle_line_x_bottom, max_y, middle_line_x_top, min_y] ]]
 
     line_image = np.copy(cv_image) * 0
     copy_image = np.copy(cv_image) * 0
