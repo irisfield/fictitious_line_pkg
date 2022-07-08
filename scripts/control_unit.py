@@ -108,8 +108,8 @@ def stop_vehicle():
 if __name__ == "__main__":
     rospy.init_node("control_unit", anonymous=True)
 
-    rospy.Subscriber("yellow_detected", Bool, detect_yellow_callback)
     rospy.Subscriber("yaw_rate", Float32, yaw_rate_callback)
+    rospy.Subscriber("yellow_detected", Bool, detect_yellow_callback)
 
     cmd_vel_pub = rospy.Publisher("/vehicle/cmd_vel", Twist, queue_size=1)
     enable_drive_pub = rospy.Publisher("/vehicle/enable", Empty, queue_size=1)

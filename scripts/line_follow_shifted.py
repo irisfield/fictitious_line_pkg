@@ -1,4 +1,5 @@
 #!/usr/bin/env python3
+
 # https://www.youtube.com/watch?v=AbqErp4ZGgU
 # https://medium.com/@mrhwick/simple-lane-detection-with-opencv-bfeb6ae54ec0
 # https://towardsdatascience.com/finding-driving-lane-line-live-with-opencv-f17c266f15db
@@ -43,12 +44,12 @@ def image_callback(camera_image):
     filtered_roi_image = get_region_of_interest(filtered_image)
 
     lines = cv2.HoughLinesP(filtered_roi_image,
-                            rho=1,
+                            rho=RC.rho,
                             theta=(np.pi / 180),
-                            threshold=15,
+                            threshold=RC.thresh,
                             lines=np.array([]),
-                            minLineLength=5,
-                            maxLineGap=5
+                            minLineLength=RC.minLength,
+                            maxLineGap=RC.maxGap
                            )
 
     right_line_x = []
@@ -69,8 +70,8 @@ def image_callback(camera_image):
     height = cv_image.shape[0]
 
     # starting end ending point of the line
-    right_line_start_point_y = height
-    right_line_end_point_y = height * (3 / 5)
+    right_line_start_point_y = height * (1)
+    right_line_end_point_y = height * (3/5)
 
     poly_right = 0
 
@@ -79,8 +80,8 @@ def image_callback(camera_image):
         right_line_start_point_x = int(poly_right(right_line_start_point_y))
         right_line_end_point_x = int(poly_right(right_line_end_point_y))
     else:
-        right_line_start_point_x = int(width / 1)
-        right_line_end_point_x = int(width / 1.5)
+        right_line_start_point_x = int(width)
+        right_line_end_point_x = int(width/1.2)
 
     # the coordinates for the line (x, y)
     right_lines = [[
@@ -93,8 +94,8 @@ def image_callback(camera_image):
 
     for line in right_lines:
         for x1, y1, x2, y2 in line:
-            cv2.line(line_image, (x1, y1), (x2, int(y2)), (255, 0, 0), 10)
-            cv2.line(line_image, (x1, y1), (x2, int(y2)), (0, 0, 255), 10)
+            cv2.line(line_image, (x1, int(y1)), (x2, int(y2)), (255, 0, 0), 10)
+            cv2.line(line_image, (x1-RC.midline, int(y1)), (x2-RC.midline, int(y2)), (0, 0, 255), 10)
 
     hough_line_image = cv2.addWeighted(cv_image, 0.8, line_image, 1, 0)
 
@@ -134,14 +135,26 @@ def image_callback(camera_image):
     cv2.circle(hough_line_image, (cx, cy), 8, (180, 0, 0), -1)  # -1 fill the circle
 
     # offset the x position of the robot to follow the lane
-    cx -= 170
+    #cx -= 170
 
     pub_yaw_rate(hough_line_image, cx, cy)
 
-    cv2.imshow("Filtered Image with ROI", filtered_roi_image)
-    cv2.imshow("Middle Hough Lines", hough_line_image)
+    # concatenate the roi images to show in a single window
+    # the shape of the images must have the same length: len(image.shape)
+    filtered_roi_image_with_channel = cv2.cvtColor(filtered_roi_image, cv2.COLOR_GRAY2BGR)
+    # filtered_roi_image_with_channel = get_region_of_interest_cropped(filtered_roi_image_with_channel)
+    concatenated_roi_image = cv2.vconcat([hough_line_image, filtered_roi_image_with_channel])
+
+    # cv2.imshow("Filtered ROI Image", filtered_roi_image)
+    # cv2.imshow("Middle Hough Lines", hough_line_image)
+    cv2.imshow("ROI Image and Hough Lines", concatenated_roi_image)
+
+    # show the region of interest the algorithm is using
+    roi_image_cropped = get_region_of_interest_cropped(cv_image)
+    cv2.imshow("ROI", roi_image_cropped)
+
     cv2.waitKey(3)
-    #rate.sleep()
+    rate.sleep()
 
 ################### filters ###################
 
@@ -163,7 +176,7 @@ def apply_filters(cv_image):
     balanced_image = apply_white_balance(cv_image)
 
     # one more time
-    balanced_image = apply_white_balance(balanced_image)
+    # balanced_image = apply_white_balance(balanced_image)
 
     # convert image to the HLS color space
     hls_image = cv2.cvtColor(balanced_image, cv2.COLOR_BGR2HLS)
@@ -207,10 +220,16 @@ def get_region_of_interest(image):
                    ]], dtype = np.int32)
 
     mask = np.zeros_like(image)
-    cv2.fillPoly(mask, roi, 255)
+    cv2.fillPoly(mask, roi, (255, 255, 255))
 
     # return the image with the region of interest
     return cv2.bitwise_and(image, mask)
+
+def get_region_of_interest_cropped(cv_image):
+    roi_image = get_region_of_interest(cv_image)
+    # crop the black edges and return cropped image
+    y_nonzero, x_nonzero, _ = np.nonzero(roi_image)
+    return roi_image[np.min(y_nonzero):np.max(y_nonzero), np.min(x_nonzero):np.max(x_nonzero)]
 
 def perspective_warp(image,
                      destination_size=(1280, 720),
@@ -277,7 +296,7 @@ if __name__ == "__main__":
 
     rospy.Subscriber("/camera/image_raw", Image, image_callback)
 
-    #rate = rospy.Rate(10)
+    rate = rospy.Rate(20)
     yaw_rate_pub = rospy.Publisher("yaw_rate", Float32, queue_size=1)
 
     dynamic_reconfigure_server = Server(LineFollowConfig, dynamic_reconfigure_callback)
