@@ -198,7 +198,7 @@ def apply_filters(cv_image):
 
     # find and return the edges in in smoothed image
     return cv2.Canny(smoothed_gray_image, 200, 255)
-    
+
 
 def get_region_of_interest(image):
 
@@ -259,7 +259,7 @@ def pub_yaw_rate(cx, width, height):
     #       less than 3.0 - deviates a little inward when turning
     #                 3.0 - follows the line exactly
     #       more than 3.0 - deviates a little outward when turning
-    correction = RC.offset_yaw * camera_center_y
+    correction = 3.0 * camera_center_y
 
     # compute the yaw rate proportion to the difference between centroid and camera center
     angular_z = float(center_error / correction)

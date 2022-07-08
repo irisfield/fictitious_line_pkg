@@ -33,71 +33,75 @@ def image_callback(camera_image):
     except CvBridgeError:
         print(CvBridgeError)
 
-    width = cv_image.shape[0]
-    height = cv_image.shape[1]
+    # get the dimension of the image
+    height, width = cv_image.shape[0], cv_image.shape[1]
 
     # resize the image
     cv_image = cv2.resize(cv_image, None, fx=0.7, fy=0.7, interpolation=cv2.INTER_AREA)
 
     filtered_image = apply_filters(cv_image)
-    filtered_image_with_roi = get_region_of_interest(filtered_image)
+    filtered_roi_image = get_region_of_interest(filtered_image)
 
-    ###################################################################################################
-    lines = cv2.HoughLinesP(filtered_image_with_roi, rho=6, theta=(np.pi / 180),
-                            threshold=15, lines=np.array([]), minLineLength=20, maxLineGap=30)
+    lines = cv2.HoughLinesP(filtered_roi_image,
+                            rho=1,
+                            theta=(np.pi / 180),
+                            threshold=15,
+                            lines=np.array([]),
+                            minLineLength=5,
+                            maxLineGap=5
+                           )
 
     right_line_x = []
     right_line_y = []
 
+    # take only the right slope
     if lines is not None:
         for line in lines:
             for x1, y1, x2, y2 in line:
                 slope = (y2 - y1) / (x2 - x1)
-            if (math.fabs(slope) < 0.5):
-                continue
+            # positive slope is right
             if slope > 0:
                 right_line_x.extend([x1, x2])
                 right_line_y.extend([y1, y2])
-    else:
-        # print("\n\n LINES IS EMPTY \n\n")
-        pass
 
-    # just below the horizon
-    min_y = filtered_image_with_roi.shape[0] * (3 / 5)
-    print(f"Minimum y coordinate:", min_y)
-    # the bottom of the image
-    max_y = filtered_image_with_roi.shape[0]
-    print(f"Maximum y coordinate:",max_y)
-    # middle_line_y_start = min_y
-    # middle_line_y_end = max_y
+    # get the dimensions of the image
+    width = cv_image.shape[1]
+    height = cv_image.shape[0]
+
+    # starting end ending point of the line
+    right_line_start_point_y = height
+    right_line_end_point_y = height * (3 / 5)
 
     poly_right = 0
 
     if len(right_line_x) != 0 and len(right_line_y) != 0:
         poly_right = np.poly1d(np.polyfit(right_line_y, right_line_x, deg=1))
-        right_line_x_start = int(poly_right(max_y))
-        right_line_x_end = int(poly_right(min_y))
+        right_line_start_point_x = int(poly_right(right_line_start_point_y))
+        right_line_end_point_x = int(poly_right(right_line_end_point_y))
     else:
-        right_line_x_start = int(width/3)
-        right_line_x_end = int(width/4)
+        right_line_start_point_x = int(width / 1)
+        right_line_end_point_x = int(width / 1.5)
 
-    right_lines= [[ [right_line_x_start, max_y, right_line_x_end, min_y] ]]
+    # the coordinates for the line (x, y)
+    right_lines = [[
+                    [right_line_start_point_x, right_line_start_point_y,
+                    right_line_end_point_x, right_line_end_point_y]
+                  ]]
 
+    # blank image to draw the lines
     line_image = np.copy(cv_image) * 0
 
     for line in right_lines:
         for x1, y1, x2, y2 in line:
-            print(x1, y1, x2, y2)
             cv2.line(line_image, (x1, y1), (x2, int(y2)), (255, 0, 0), 10)
-            cv2.line(line_image, (x1-300, y1), (x2-300, int(y2)), (0, 0, 255), 10)
+            cv2.line(line_image, (x1, y1), (x2, int(y2)), (0, 0, 255), 10)
 
-    #lines_edges = cv2.addWeighted(cv_image, 0.8, line_image, 1, 0)
-    middle_line_edge = cv2.addWeighted(cv_image, 0.8, line_image, 1, 0)
+    hough_line_image = cv2.addWeighted(cv_image, 0.8, line_image, 1, 0)
 
     # convert the image to grayscale
-    hsv = cv2.cvtColor(middle_line_edge, cv2.COLOR_BGR2HSV)
-    thresh1 = cv2.inRange(hsv,np.array((0, 150, 150)), np.array((20, 255, 255)))
-    thresh2 = cv2.inRange(hsv,np.array((150, 150, 150)), np.array((180, 255, 255)))
+    hsv_image = cv2.cvtColor(hough_line_image, cv2.COLOR_BGR2HSV)
+    thresh1 = cv2.inRange(hsv_image,np.array((0, 150, 150)), np.array((20, 255, 255)))
+    thresh2 = cv2.inRange(hsv_image,np.array((150, 150, 150)), np.array((180, 255, 255)))
     thresh =  cv2.bitwise_or(thresh1, thresh2)
 
     # find the contours in the binary image
@@ -119,35 +123,23 @@ def image_callback(camera_image):
             # compute the x and y coordinates of the centroid
             cx = int(M["m10"] / M["m00"])
             cy = int(M["m01"] / M["m00"])
-    else:
-        # rospy.loginfo(f"empty contours: {contours}")
-        pass
 
     try:
         # draw the obtained contour lines (or the set of coordinates forming a line) on the original image
-        cv2.drawContours(middle_line_edge, max_contour, -1, (0, 255, 0), 10)
+        cv2.drawContours(hough_line_image, max_contour, -1, (0, 255, 0), 10)
     except UnboundLocalError:
         rospy.loginfo("max contour not found")
 
     # draw a circle at centroid (https://www.geeksforgeeks.org/python-opencv-cv2-circle-method)
-    cv2.circle(middle_line_edge, (cx, cy), 8, (180, 0, 0), -1)  # -1 fill the circle
+    cv2.circle(hough_line_image, (cx, cy), 8, (180, 0, 0), -1)  # -1 fill the circle
 
-    ###################################################################################################
+    # offset the x position of the robot to follow the lane
+    cx -= 170
 
-    # get the dimension of the image
-    height, width = cv_image.shape[0], cv_image.shape[1]
+    pub_yaw_rate(hough_line_image, cx, cy)
 
-    # offset the x position of the vehicle to follow the lane
-    # cx -= 170
-    pub_yaw_rate(cv_image, cx, cy, height, width)
-
-    cv_image1 = get_region_of_interest(cv_image)
-
-    #cv2.imshow("CV Image", cv_image)
-    cv2.imshow("Filtered Image with ROI", filtered_image_with_roi)
-    #cv2.imshow("Image with ROI", cv_image1)
-    #cv2.imshow("Hough Lines", lines_edges)
-    cv2.imshow("Middle Hough Lines", middle_line_edge)
+    cv2.imshow("Filtered Image with ROI", filtered_roi_image)
+    cv2.imshow("Middle Hough Lines", hough_line_image)
     cv2.waitKey(3)
     #rate.sleep()
 
@@ -180,11 +172,6 @@ def apply_filters(cv_image):
     lower_bounds = np.uint8([0, RC.light_l, 0])
     upper_bounds = np.uint8([255, 255, 255])
     white_detection_mask = cv2.inRange(hls_image, lower_bounds, upper_bounds)
-
-    # lower and upper bounds for the color yellow
-    # lower_bounds = np.uint8([10, 0, 100])
-    # upper_bounds = np.uint8([40, 255, 255])
-    # yellow_detection_mask = cv2.inRange(hls_image, lower_bounds, upper_bounds)
 
     # combine the masks
     # white_or_yellow_mask = cv2.bitwise_or(white_detection_mask, yellow_mask)
@@ -246,10 +233,14 @@ def perspective_warp(image,
 
 ################### algorithms ###################
 
-def pub_yaw_rate(cv_image, cx, cy, width, height):
+def pub_yaw_rate(cv_image, cx, cy):
+
+    # get the dimensions of the image
+    width = cv_image.shape[1]
+    height = cv_image.shape[0]
 
     # compute the coordinates for the center the vehicle's camera view
-    camera_center_y = (height / 4)*3
+    camera_center_y = (height / 2)
     camera_center_x = (width / 2)
 
     # compute the difference between the x and y coordinates of the centroid and the vehicle's camera center
@@ -259,7 +250,7 @@ def pub_yaw_rate(cv_image, cx, cy, width, height):
     #       less than 3.0 - deviates a little inward when turning
     #                 3.0 - follows the line exactly
     #       more than 3.0 - deviates a little outward when turning
-    correction = RC.offset_yaw * camera_center_y
+    correction = 2.0 * camera_center_y
 
     # compute the yaw rate proportion to the difference between centroid and camera center
     angular_z = float(center_error / correction)
