@@ -32,7 +32,7 @@ def image_callback(camera_image):
         cv_image = CvBridge().imgmsg_to_cv2(camera_image, "bgr8")
     except CvBridgeError:
         print(CvBridgeError)
-        
+
     width = cv_image.shape[0]
     height = cv_image.shape[1]
 
