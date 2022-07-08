@@ -297,7 +297,7 @@ if __name__ == "__main__":
     rospy.Subscriber("/camera/image_raw", Image, image_callback)
 
     rate = rospy.Rate(20)
-    yaw_rate_pub = rospy.Publisher("yaw_rate", Float32, queue_size=1)
+    yaw_rate_pub = rospy.Publisher("/yaw_rate", Float32, queue_size=1)
 
     dynamic_reconfigure_server = Server(LineFollowConfig, dynamic_reconfigure_callback)
 
