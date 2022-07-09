@@ -214,7 +214,7 @@ def get_region_of_interest(image):
                        [width * 4, height * 4],
                        [width * 2, height * 4],
                        [width, height * 6],
-                       [width * 8, height * 8]
+                       [0, height * 8]
 
                    ]], dtype = np.int32)
 
