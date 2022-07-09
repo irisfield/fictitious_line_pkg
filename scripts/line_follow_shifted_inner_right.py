@@ -210,27 +210,23 @@ def get_region_of_interest(image):
 
     # get the region of interest
     try:
-        print("we are dynamically changing the ROI")
-        
-        print(cx)
-
         droi = np.array([[
 
-                       [width*8, height*8],
-                       [width*8, height*4],
-                       [width*7, (height*4)],
-                       [(width*8)-cx, (height*6)], #if this doesnt work change the 8 to a 7
-                       [width*4, height*8]
+                       [width * 8, height * 8],
+                       [width * 8, height * 4],
+                       [width * 7, height * 4],
+                       [(width * 8) - cx, height * 6], # if this doesnt work change the 8 to a 7
+                       [width * 4, height * 8]
 
                    ]], dtype = np.int32)
     except:
         droi = np.array([[
 
-                       [width*8, height*8],
-                       [width*8, height*4],
-                       [width*7, (height*4)],
-                       [width*5 , (height*6)],
-                       [width*4, height*8]
+                       [width * 8, height * 8],
+                       [width * 8, height * 4],
+                       [width * 7, height * 4],
+                       [width * 5, height * 6],
+                       [width * 4, height * 8]
 
                    ]], dtype = np.int32)
 
