@@ -1,0 +1,20 @@
+<?xml version="1.0"?>
+
+<launch>
+
+  <!-- launch the dynamic reconfigure GUI -->
+  <node pkg="rqt_reconfigure" name="rqt_console" type="rqt_reconfigure" args="-t"/>
+
+  <!-- launch the yellow line detection node -->
+  <node pkg="fictitious_line_pkg" name="detect_yellow" type="detect_yellow.py" required="true" output="screen"/>
+
+  <!-- launch the control unit node -->
+  <node pkg="fictitious_line_pkg" name="control_unit" type="control_unit.py" required="true" output="screen"/>
+
+  <!-- launch the line follow node -->
+  <node pkg="fictitious_line_pkg" name="line_follow" type="line_follow.py" required="true" output="screen"/>
+
+  <!-- launch the speed monitor node -->
+  <node pkg="fictitious_line_pkg" name="speed_monitor" type="speed_monitor.py" required="true" output="screen"/>
+
+</launch>

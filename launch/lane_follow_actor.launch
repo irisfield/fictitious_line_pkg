@@ -2,26 +2,28 @@
 
 <launch>
 
+  <arg name="algo" default="shifted"/>
+
   <!-- launch the drive-by-write system -->
-  <arg name="sys" default="true" />
+  <arg name="sys" default="true"/>
   <group if="$(arg sys)">
-    <include file="$(find dbw_polaris_can)/launch/dbw.launch" />
+    <include file="$(find dbw_polaris_can)/launch/dbw.launch"/>
   </group>
 
   <!-- connect to the vehicle's camera -->
-  <include file="$(find avt_vimba_camera)/launch/mono_camera.launch" />
+  <include file="$(find avt_vimba_camera)/launch/mono_camera.launch"/>
 
   <!-- launch the dynamic reconfigure GUI -->
-  <node pkg="rqt_reconfigure" name="rqt_console" type="rqt_reconfigure" args="-t" />
+  <node pkg="rqt_reconfigure" name="rqt_console" type="rqt_reconfigure" args="-t"/>
 
   <!-- launch the yellow line detection node -->
   <node pkg="fictitious_line_pkg" name="yellow_line" type="yellow_line.py" required="true" output="screen"/>
 
   <!-- launch the control unit node -->
-  <node pkg="fictitious_line_pkg" name="control_unit" type="control_unit.py" required="true" output="screen" />
+  <node pkg="fictitious_line_pkg" name="control_unit" type="control_unit.py" required="true" output="screen"/>
 
   <!-- launch the line follow node -->
-  <node pkg="fictitious_line_pkg" name="line_follow_shifted" type="line_follow_shifted.py" required="true" output="screen" />
+  <node pkg="fictitious_line_pkg" name="line_follow_$(arg algo)" type="line_follow_$(arg algo).py" required="true" output="screen"/>
 
   <!-- launch the sdt report node -->
   <node pkg="fictitious_line_pkg" name="sdt_report" type="sdt_report.py" required="true" output="screen"/>
