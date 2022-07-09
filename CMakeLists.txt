@@ -8,14 +8,14 @@ project(fictitious_line_pkg)
 ## if COMPONENTS list like find_package(catkin REQUIRED COMPONENTS xyz)
 ## is used, also find other catkin packages
 find_package(catkin REQUIRED COMPONENTS
-  cv_bridge
-  dbw_polaris_msgs
-  dynamic_reconfigure
-  geometry_msgs
-  roscpp
   rospy
-  sensor_msgs
+  roscpp
   std_msgs
+  cv_bridge
+  sensor_msgs
+  geometry_msgs
+  dbw_polaris_msgs  # before building this workspace, source ~/dbw_ws/devel/setup.sh
+  dynamic_reconfigure
 )
 
 ## Generate dynamic reconfigure parameters in the 'cfg' folder
