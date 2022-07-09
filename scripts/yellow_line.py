@@ -51,9 +51,6 @@ def image_callback(camera_image):
     roi_image = hls_image[435:786, 340:500]
 
     # specify the hls values for yellow
-    # initial values:
-    # lower_bounds = np.uint8([10, 0, 100])
-    # upper_bounds = np.uint8([40, 255, 255])
     lower_bounds = np.uint8([10, RC.light_low, RC.sat_low])
     upper_bounds = np.uint8([40, 255, 255])
     yellow_mask = cv2.inRange(roi_image, lower_bounds, upper_bounds)
