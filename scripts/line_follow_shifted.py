@@ -33,9 +33,6 @@ def image_callback(camera_image):
     except CvBridgeError:
         print(CvBridgeError)
 
-    # get the dimension of the image
-    height, width = cv_image.shape[0], cv_image.shape[1]
-
     # resize the image
     cv_image = cv2.resize(cv_image, None, fx=0.7, fy=0.7, interpolation=cv2.INTER_AREA)
 
@@ -64,9 +61,8 @@ def image_callback(camera_image):
                 right_line_x.extend([x1, x2])
                 right_line_y.extend([y1, y2])
 
-    # get the dimensions of the image
-    width = cv_image.shape[1]
-    height = cv_image.shape[0]
+    # get the dimension of the image
+    height, width = cv_image.shape[0], cv_image.shape[1]
 
     # starting end ending point of the line
     right_line_start_point_y = height * (1)
@@ -98,7 +94,7 @@ def image_callback(camera_image):
 
     hough_line_image = cv2.addWeighted(cv_image, 0.8, line_image, 1, 0)
 
-    # convert the image to grayscale
+    # convert the image to HSV color space
     hsv_image = cv2.cvtColor(hough_line_image, cv2.COLOR_BGR2HSV)
     thresh1 = cv2.inRange(hsv_image,np.array((0, 150, 150)), np.array((20, 255, 255)))
     thresh2 = cv2.inRange(hsv_image,np.array((150, 150, 150)), np.array((180, 255, 255)))
