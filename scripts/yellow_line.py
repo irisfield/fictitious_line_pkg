@@ -26,11 +26,6 @@ def dynamic_reconfigure_callback(config, level):
     RC = config
     return config
 
-def time_report_callback(report):
-    global time_elapsed_secs
-    time_elapsed_secs = report.data
-    return
-
 def speed_report_callback(report):
     global speed_ms
     speed_ms = report.data
@@ -69,7 +64,6 @@ def image_callback(camera_image):
     # draw the obtained contour lines(or the set of coordinates forming a line) on the original image
     cv2.drawContours(roi_image, max_contour, -1, (0, 0, 255), 8)
 
-    # this number should be determined based on speed
     num_frames = 5
 
     # detect yellow for a continuous number of frames
@@ -104,7 +98,6 @@ if __name__ == "__main__":
     rospy.init_node("yellow_line", anonymous=True)
 
     rospy.Subscriber("/camera/image_raw", Image, image_callback)
-    rospy.Subscriber("/sdt_report/time_secs", Int32, time_report_callback)
     rospy.Subscriber("/sdt_report/speed_ms", Float32, speed_report_callback)
 
     yellow_msg_pub = rospy.Publisher("/yellow_line_detected", Bool, queue_size=1)
