@@ -4,7 +4,6 @@
 # https://medium.com/@mrhwick/simple-lane-detection-with-opencv-bfeb6ae54ec0
 # https://towardsdatascience.com/finding-driving-lane-line-live-with-opencv-f17c266f15db
 
-
 import cv2
 import math
 import rospy
@@ -46,10 +45,10 @@ def image_callback(camera_image):
     lines = cv2.HoughLinesP(filtered_roi_image,
                             rho=RC.rho,
                             theta=(np.pi / 180),
-                            threshold=RC.thresh,
+                            threshold=RC.threshold,
                             lines=np.array([]),
-                            minLineLength=RC.minLength,
-                            maxLineGap=RC.maxGap
+                            minLineLength=RC.min_line_length,
+                            maxLineGap=RC.max_line_gap
                            )
 
     right_line_x = []
@@ -95,7 +94,7 @@ def image_callback(camera_image):
     for line in right_lines:
         for x1, y1, x2, y2 in line:
             cv2.line(line_image, (x1, int(y1)), (x2, int(y2)), (255, 0, 0), 10)
-            cv2.line(line_image, (x1-RC.midline, int(y1)), (x2-RC.midline, int(y2)), (0, 0, 255), 10)
+            cv2.line(line_image, (x1 - RC.midline, int(y1)), (x2 - RC.midline, int(y2)), (0, 0, 255), 10)
 
     hough_line_image = cv2.addWeighted(cv_image, 0.8, line_image, 1, 0)
 
@@ -175,14 +174,14 @@ def apply_filters(cv_image):
 
     balanced_image = apply_white_balance(cv_image)
 
-    # one more time
+    # one more time, comment if it is overcast
     # balanced_image = apply_white_balance(balanced_image)
 
     # convert image to the HLS color space
     hls_image = cv2.cvtColor(balanced_image, cv2.COLOR_BGR2HLS)
 
     # lower and upper bounds for the color white
-    lower_bounds = np.uint8([0, RC.light_l, 0])
+    lower_bounds = np.uint8([0, RC.light_low, 0])
     upper_bounds = np.uint8([255, 255, 255])
     white_detection_mask = cv2.inRange(hls_image, lower_bounds, upper_bounds)
 
@@ -210,12 +209,12 @@ def get_region_of_interest(image):
 
     roi = np.array([[
 
-                       [width*4, height*8],
-                       [width*4, height*4],
-                       [width*5, height*4],
-                       [width*6, height*5],
-                       [width*7, height*6],
-                       [width*8, height*8]
+                       [width * 4, height * 8],
+                       [width * 4, height * 4],
+                       [width * 5, height * 4],
+                       [width * 6, height * 5],
+                       [width * 7, height * 6],
+                       [width * 8, height * 8]
 
                    ]], dtype = np.int32)
 
@@ -227,6 +226,7 @@ def get_region_of_interest(image):
 
 def get_region_of_interest_cropped(cv_image):
     roi_image = get_region_of_interest(cv_image)
+
     # crop the black edges and return cropped image
     y_nonzero, x_nonzero, _ = np.nonzero(roi_image)
     return roi_image[np.min(y_nonzero):np.max(y_nonzero), np.min(x_nonzero):np.max(x_nonzero)]
@@ -296,7 +296,7 @@ if __name__ == "__main__":
 
     rospy.Subscriber("/camera/image_raw", Image, image_callback)
 
-    rate = rospy.Rate(20)
+    rate = rospy.Rate(25)
     yaw_rate_pub = rospy.Publisher("/yaw_rate", Float32, queue_size=1)
 
     dynamic_reconfigure_server = Server(LineFollowConfig, dynamic_reconfigure_callback)
