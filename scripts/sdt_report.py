@@ -75,7 +75,6 @@ if __name__ == "__main__":
     report_speed_pub = rospy.Publisher("/sdt_report/speed_ms", Float32, queue_size=1)
     report_distance_m_pub = rospy.Publisher("/sdt_report/distance_m", Float32, queue_size=1)
 
-
     try:
         rospy.spin()
     except rospy.ROSInterruptException:
