@@ -27,7 +27,7 @@
   </node>
 
   <!-- launch the line follow node -->
-  <node pkg="fictitious_line_pkg" name="line_follow" type="line_follow.py" required="true" output="screen" >
+  <node pkg="fictitious_line_pkg" name="line_follow_hough" type="line_follow_hough.py" required="true" output="screen" >
   <param name = "imgtopic_name" type = "str" value = "/camera/image_raw" />
   </node>
 
