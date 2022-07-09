@@ -46,8 +46,14 @@ def image_callback(camera_image):
     filtered_image = apply_filters(cv_image)
     filtered_image_with_roi = get_region_of_interest(filtered_image)
     ###################################################################################################
-    lines = cv2.HoughLinesP(filtered_image_with_roi, rho=6, theta=(np.pi / 180),
-                            threshold=15, lines=np.array([]), minLineLength=20, maxLineGap=30)
+    lines = cv2.HoughLinesP(filtered_image_with_roi ,
+                            rho=RC.rho,
+                            theta=(np.pi / 180),
+                            threshold=RC.threshold,
+                            lines=np.array([]),
+                            minLineLength=RC.min_line_length,
+                            maxLineGap=RC.max_line_gap
+                           )
 
     left_line_x = []
     left_line_y = []
@@ -138,14 +144,14 @@ def image_callback(camera_image):
     # offset the x position of the vehicle to follow the lane
     # cx -= 170
 
-    pub_yaw_rate(cx, height, width)
+    pub_yaw_rate(middle_line_edge, cx)
 
     cv_image1 = get_region_of_interest(cv_image)
 
     #cv2.imshow("CV Image", cv_image)
     cv2.imshow("Filtered Image with ROI", filtered_image_with_roi)
     #cv2.imshow("Image with ROI", cv_image1)
-    #cv2.imshow("Hough Lines", lines_edges)
+    cv2.imshow("Hough Lines", lines_edges)
     cv2.imshow("Middle Hough Lines", middle_line_edge)
     cv2.waitKey(3)
     #rate.sleep()
@@ -170,13 +176,13 @@ def apply_filters(cv_image):
     balanced_image = apply_white_balance(cv_image)
 
     # one more time
-    balanced_image = apply_white_balance(balanced_image)
+    #balanced_image = apply_white_balance(balanced_image)
 
     # convert image to the HLS color space
     hls_image = cv2.cvtColor(balanced_image, cv2.COLOR_BGR2HLS)
 
     # lower and upper bounds for the color white
-    lower_bounds = np.uint8([0, RC.light_l, 0])
+    lower_bounds = np.uint8([0, RC.light_low, 0])
     upper_bounds = np.uint8([255, 255, 255])
     white_detection_mask = cv2.inRange(hls_image, lower_bounds, upper_bounds)
 
@@ -246,11 +252,22 @@ def perspective_warp(image,
 
 ################### algorithms ###################
 
-def pub_yaw_rate(cx, width, height):
+def pub_yaw_rate(cv_image, cx):
+
+    width = cv_image.shape[1]
+    height = cv_image.shape[0]
 
     # compute the coordinates for the center the vehicle's camera view
     camera_center_y = (height / 2)
     camera_center_x = (width / 2)
+
+    # compute the difference between the x and y coordinates of the centroid and the vehicle's camera center
+    if cx > 600:
+        cx = 600
+        print(f"cx here is:", cx)
+    elif cx < 40:
+        cx = 40
+        print(f"cx here is:", cx)
 
     # compute the difference between the x and y coordinates of the centroid and the vehicle's camera center
     center_error = cx - camera_center_x
@@ -287,7 +304,7 @@ if __name__ == "__main__":
     rospy.Subscriber("/camera/image_raw", Image, image_callback)
 
     #rate = rospy.Rate(10)
-    yaw_rate_pub = rospy.Publisher("yaw_rate", Float32, queue_size=1)
+    yaw_rate_pub = rospy.Publisher("/yaw_rate", Float32, queue_size=1)
 
     dynamic_reconfigure_server = Server(LineFollowConfig, dynamic_reconfigure_callback)
 
