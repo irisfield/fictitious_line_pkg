@@ -40,9 +40,9 @@ def image_callback(camera_image):
     cv_image = cv2.resize(cv_image, None, fx=0.7, fy=0.7, interpolation=cv2.INTER_AREA)
 
     filtered_image = apply_filters(cv_image)
-    #filtered_roi_image = get_region_of_interest(filtered_image)
+    filtered_roi_image = get_region_of_interest(filtered_image)
 
-    lines = cv2.HoughLinesP(filtered_image,
+    lines = cv2.HoughLinesP(filtered_roi_image,
                             rho=RC.rho,
                             theta=(np.pi / 180),
                             threshold=RC.threshold,
@@ -141,7 +141,7 @@ def image_callback(camera_image):
     # concatenate the roi images to show in a single window
     # the shape of the images must have the same length: len(image.shape)
     #filtered_roi_image_with_channel = cv2.cvtColor(filtered_roi_image, cv2.COLOR_GRAY2BGR)
-    filtered_roi_image_with_channel = cv2.cvtColor(filtered_image, cv2.COLOR_GRAY2BGR)
+    filtered_roi_image_with_channel = cv2.cvtColor(filtered_roi_image, cv2.COLOR_GRAY2BGR)
     # filtered_roi_image_with_channel = get_region_of_interest_cropped(filtered_roi_image_with_channel)
     concatenated_roi_image = cv2.vconcat([hough_line_image, filtered_roi_image_with_channel])
 
