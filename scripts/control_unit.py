@@ -14,6 +14,10 @@ vel_msg = Twist()
 vel_msg.linear.x = 0.0
 vel_msg.angular.z = 0.0
 
+previous_time = 0.0
+
+start_with_dead_reckon_turn = True
+
 ################### callback ###################
 
 def dynamic_reconfigure_callback(config, level):
@@ -25,20 +29,65 @@ def yaw_rate_callback(angular_z):
     global yaw_rate
     yaw_rate = angular_z.data
 
+def time_report_callback(report):
+    global time_elapsed_secs
+    time_elapsed_secs = report.data
+    return
+
 def yellow_line_callback(yellow_line):
-    global vel_msg
+    global vel_msg, previous_time, start_with_dead_reckon_turn
 
     if RC.enable_drive:
-        if yellow_line.data:
-            # drive to the yellow line
-            drive_duration(1.0, 0.0, 3.0)
+        if start_with_dead_reckon_turn:
 
-            # stop at the yelllow line for 3 seconds
-            drive_duration(0.0, 0.0, 3.0)
+            # drive forward a little
+            drive_duration(1.0, 0.0, 5.0)
 
-            # drive the curve until it finds the other lane
-            drive_duration(1.0, 0.0, 2.0)
-            drive_duration(1.0, 0.12, 16.0)
+            # drive the curve until it finds the outer lane
+            drive_duration(1.0, -0.26, 10)
+
+            start_with_dead_reckon_turn = False
+
+            # start the timer
+            previous_time = time_elapsed_secs
+
+        # wait 30 seconds after making the starting dead reckon before receiving yellow line messages
+        if yellow_line.data and (int(time_elapsed_secs - previous_time) > 30):
+            if RC.shifted_outer:
+
+                ######### shifted outer #########
+
+                # drive to the yellow line
+                drive_duration(1.0, 0.0, 3.0)
+
+                # stop at the yellow line
+                drive_duration(0.0, 0.0, 3.0)
+
+                # drive the curve until it finds the outer lane
+                drive_duration(1.0, 0.12, 16.0)
+
+                # start the timer
+                previous_time = time_elapsed_secs
+
+            else:
+
+                ######### shifted inner middle #########
+
+                # drive to the yellow line
+                drive_duration(1.0, 0.0, 3.0)
+
+                # stop at the yellow line
+                drive_duration(0.0, 0.0, 3.0)
+
+                # drive forward a little
+                drive_duration(1.0, 0.0, 4.0)
+
+                # drive the curve until it finds the outer lane
+                drive_duration(1.0, -0.26, 10)
+
+                # start the timer
+                previous_time = time_elapsed_secs
+
         else:
             # engage the line following algorithm
             vel_msg.linear.x = RC.speed
@@ -108,6 +157,7 @@ if __name__ == "__main__":
     rospy.init_node("control_unit", anonymous=True)
 
     rospy.Subscriber("/yaw_rate", Float32, yaw_rate_callback)
+    rospy.Subscriber("/sdt_report/time_secs", Float32, time_report_callback)
     rospy.Subscriber("/yellow_line_detected", Bool, yellow_line_callback)
 
     cmd_vel_pub = rospy.Publisher("/vehicle/cmd_vel", Twist, queue_size=1)

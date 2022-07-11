@@ -24,6 +24,7 @@ start_time_lap = True
 
 list_of_speeds = []
 
+time_msg = Float32()
 speed_msg = Float32()
 
 ################### callback ###################
@@ -59,7 +60,9 @@ def steering_report_callback(report):
         # display the instantaneous speed, distance and time (SDT) report every second
         rospy.loginfo(f"SDT: {speed_ms:0.1f} m/s -> {speed_mph:0.1f} mph | {distance_m:0.1f} m | {time_elapsed_secs:0.0f} s")
 
+    time_msg.data = time_elapsed_secs
     speed_msg.data = speed_ms
+    report_time_pub.publish(time_msg)
     report_speed_pub.publish(speed_msg)
 
 def yellow_line_callback(yellow_line):
@@ -99,6 +102,7 @@ if __name__ == "__main__":
     rospy.Subscriber("/yellow_line_detected", Bool, yellow_line_callback)
     rospy.Subscriber("/vehicle/steering_report", SteeringReport, steering_report_callback)
 
+    report_time_pub = rospy.Publisher("/sdt_report/time_secs", Float32, queue_size=1)
     report_speed_pub = rospy.Publisher("/sdt_report/speed_ms", Float32, queue_size=1)
 
     try:

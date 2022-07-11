@@ -14,7 +14,8 @@ from fictitious_line_pkg.cfg import YellowLineConfig
 # global variables
 yellow_msg = Bool()
 
-previous_time = 0
+previous_time = 0.0
+
 yellow_frames = 0
 
 publish_once = True
@@ -29,6 +30,11 @@ def dynamic_reconfigure_callback(config, level):
 def speed_report_callback(report):
     global speed_ms
     speed_ms = report.data
+    return
+
+def time_report_callback(report):
+    global time_elapsed_secs
+    time_elapsed_secs = report.data
     return
 
 def image_callback(camera_image):
@@ -70,12 +76,15 @@ def image_callback(camera_image):
     if (max_area > 400) and (yellow_frames < num_frames) and (speed_ms > 0.0):
         yellow_msg.data = False
         yellow_frames += 1
+        previous_time = time_elapsed_secs
     elif (yellow_frames == num_frames) and (speed_ms > 0.0) and publish_once:
         yellow_msg.data = True
+        print("YELLOW LINE: TRUE")
         publish_once = False
         yellow_frames = 0
-    elif (max_area < 5.0) and (yellow_frames == 0) and not publish_once:
+    elif (int(time_elapsed_secs - previous_time) == 30) and not publish_once:
         publish_once = True
+        previous_time = 0.0
     else:
         yellow_msg.data = False
         yellow_frames = 0
@@ -99,6 +108,7 @@ if __name__ == "__main__":
 
     rospy.Subscriber("/camera/image_raw", Image, image_callback)
     rospy.Subscriber("/sdt_report/speed_ms", Float32, speed_report_callback)
+    rospy.Subscriber("/sdt_report/time_secs", Float32, time_report_callback)
 
     yellow_msg_pub = rospy.Publisher("/yellow_line_detected", Bool, queue_size=1)
 
