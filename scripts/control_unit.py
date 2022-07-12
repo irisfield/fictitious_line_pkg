@@ -38,7 +38,21 @@ def yellow_line_callback(yellow_line):
     global vel_msg, previous_time, start_with_dead_reckon_turn
 
     if RC.enable_drive:
-        if start_with_dead_reckon_turn:
+        if start_with_dead_reckon_turn and RC.shifted_outer:
+            rospy.loginfo("FIRST DEAD RECKONING TURN SHIFTED OUTER")
+
+            # drive forward a little
+            drive_duration(1.0, 0.0, 5.0)
+
+            # drive the curve until it finds the outer lane
+            drive_duration(1.0, 0.12, 16.0)
+
+            start_with_dead_reckon_turn = False
+
+            # start the timer
+            previous_time = time_elapsed_secs
+        elif start_with_dead_reckon_turn:
+            rospy.loginfo("FIRST DEAD RECKONING TURN INNER MIDDLE")
 
             # drive forward a little
             drive_duration(1.0, 0.0, 5.0)
@@ -55,10 +69,10 @@ def yellow_line_callback(yellow_line):
         if yellow_line.data and (int(time_elapsed_secs - previous_time) > 30):
             if RC.shifted_outer:
 
-                ######### shifted outer #########
+                rospy.loginfo("DEAD RECKONING TURN SHIFTED OUTER")
 
                 # drive to the yellow line
-                drive_duration(1.0, 0.0, 3.0)
+                drive_duration(1.0, 0.0, 5.0)
 
                 # stop at the yellow line
                 drive_duration(0.0, 0.0, 3.0)
@@ -71,7 +85,7 @@ def yellow_line_callback(yellow_line):
 
             else:
 
-                ######### shifted inner middle #########
+                rospy.loginfo("DEAD RECKONING TURN INNER MIDDLE")
 
                 # drive to the yellow line
                 drive_duration(1.0, 0.0, 3.0)
