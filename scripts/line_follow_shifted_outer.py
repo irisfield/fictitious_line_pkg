@@ -3,6 +3,7 @@
 # https://www.youtube.com/watch?v=AbqErp4ZGgU
 # https://medium.com/@mrhwick/simple-lane-detection-with-opencv-bfeb6ae54ec0
 # https://towardsdatascience.com/finding-driving-lane-line-live-with-opencv-f17c266f15db
+#
 
 import cv2
 import math
@@ -288,7 +289,7 @@ def pub_yaw_rate(cv_image, cx, cy):
 
 if __name__ == "__main__":
 
-    rospy.init_node("follow_line", anonymous=True)
+    rospy.init_node("line_follow_shifted_outer", anonymous=True)
 
     rospy.Subscriber("/camera/image_raw", Image, image_callback)
 

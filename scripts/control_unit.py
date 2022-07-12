@@ -45,7 +45,7 @@ def yellow_line_callback(yellow_line):
             drive_duration(1.0, 0.0, 5.0)
 
             # drive the curve until it finds the outer lane
-            drive_duration(1.0, 0.12, 16.0)
+            drive_duration(1.0, 0.12, 15.0)
 
             start_with_dead_reckon_turn = False
 
@@ -72,10 +72,13 @@ def yellow_line_callback(yellow_line):
                 rospy.loginfo("DEAD RECKONING TURN SHIFTED OUTER")
 
                 # drive to the yellow line
-                drive_duration(1.0, 0.0, 5.0)
+                drive_duration(1.0, 0.0, 3.0)
 
                 # stop at the yellow line
                 drive_duration(0.0, 0.0, 3.0)
+
+                # go forward a little
+                drive_duration(1.0, 0.0, 3.0)
 
                 # drive the curve until it finds the outer lane
                 drive_duration(1.0, 0.12, 16.0)
@@ -94,7 +97,7 @@ def yellow_line_callback(yellow_line):
                 drive_duration(0.0, 0.0, 3.0)
 
                 # drive forward a little
-                drive_duration(1.0, 0.0, 4.0)
+                drive_duration(1.0, 0.0, 3.0)
 
                 # drive the curve until it finds the outer lane
                 drive_duration(1.0, -0.26, 10)
