@@ -3,7 +3,6 @@
 # https://www.youtube.com/watch?v=AbqErp4ZGgU
 # https://medium.com/@mrhwick/simple-lane-detection-with-opencv-bfeb6ae54ec0
 # https://towardsdatascience.com/finding-driving-lane-line-live-with-opencv-f17c266f15db
-#
 
 import cv2
 import math
@@ -92,48 +91,12 @@ def image_callback(camera_image):
         for x1, y1, x2, y2 in line:
             cv2.line(line_image, (x1, int(y1)), (x2, int(y2)), (255, 0, 0), 10)
             cv2.line(line_image, (x1 - RC.midline, int(y1)), (x2 - RC.midline, int(y2)), (0, 0, 255), 10)
+            cx = abs(x2 - RC.midline)
+            print(f"cx:", cx)
 
     hough_line_image = cv2.addWeighted(cv_image, 0.8, line_image, 1, 0)
 
-    # convert the image to HSV color space
-    hsv_image = cv2.cvtColor(hough_line_image, cv2.COLOR_BGR2HSV)
-    thresh1 = cv2.inRange(hsv_image,np.array((0, 150, 150)), np.array((20, 255, 255)))
-    thresh2 = cv2.inRange(hsv_image,np.array((150, 150, 150)), np.array((180, 255, 255)))
-    thresh =  cv2.bitwise_or(thresh1, thresh2)
-
-    # find the contours in the binary image
-    contours, _ = cv2.findContours(thresh, cv2.RETR_LIST, cv2.CHAIN_APPROX_SIMPLE)
-
-    # initialize the variables for computing the centroid and finding the largest contour
-    cx = 0
-    cy = 0
-    max_contour = []
-
-    if len(contours) != 0:
-        # find the largest contour by its area
-        max_contour = max(contours, key = cv2.contourArea)
-
-        # https://learnopencv.com/find-center-of-blob-centroid-using-opencv-cpp-python/
-        M = cv2.moments(max_contour)
-
-        if M["m00"] != 0:
-            # compute the x and y coordinates of the centroid
-            cx = int(M["m10"] / M["m00"])
-            cy = int(M["m01"] / M["m00"])
-
-    try:
-        # draw the obtained contour lines (or the set of coordinates forming a line) on the original image
-        cv2.drawContours(hough_line_image, max_contour, -1, (0, 255, 0), 10)
-    except UnboundLocalError:
-        rospy.loginfo("max contour not found")
-
-    # draw a circle at centroid (https://www.geeksforgeeks.org/python-opencv-cv2-circle-method)
-    cv2.circle(hough_line_image, (cx, cy), 8, (180, 0, 0), -1)  # -1 fill the circle
-
-    # offset the x position of the robot to follow the lane
-    #cx -= 170
-
-    pub_yaw_rate(hough_line_image, cx, cy)
+    pub_yaw_rate(hough_line_image, cx)
 
     # concatenate the roi images to show in a single window
     # the shape of the images must have the same length: len(image.shape)
@@ -249,7 +212,7 @@ def perspective_warp(image,
 
 ################### algorithms ###################
 
-def pub_yaw_rate(cv_image, cx, cy):
+def pub_yaw_rate(cv_image, cx):
 
     # get the dimensions of the image
     width = cv_image.shape[1]
@@ -258,6 +221,13 @@ def pub_yaw_rate(cv_image, cx, cy):
     # compute the coordinates for the center the vehicle's camera view
     camera_center_y = (height / 2)
     camera_center_x = (width / 2)
+
+    if cx > 400:
+        cx = 400
+        print(f"cx here is:", cx)
+    elif cx < 40:
+        cx = 40
+        print(f"cx here is:", cx)
 
     # compute the difference between the x and y coordinates of the centroid and the vehicle's camera center
     center_error = cx - camera_center_x
@@ -289,7 +259,7 @@ def pub_yaw_rate(cv_image, cx, cy):
 
 if __name__ == "__main__":
 
-    rospy.init_node("line_follow_shifted_outer", anonymous=True)
+    rospy.init_node("follow_line", anonymous=True)
 
     rospy.Subscriber("/camera/image_raw", Image, image_callback)
 

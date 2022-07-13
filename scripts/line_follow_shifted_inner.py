@@ -292,7 +292,7 @@ def pub_yaw_rate(cv_image, cx, cy):
 
 if __name__ == "__main__":
 
-    rospy.init_node("follow_line", anonymous=True)
+    rospy.init_node("line_follow_shifted_inner", anonymous=True)
 
     rospy.Subscriber("/camera/image_raw", Image, image_callback)
 
