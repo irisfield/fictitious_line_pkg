@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 
-# speed, distance and time (sdt) reporter node
+# speed, distance and time (sdt) report node
 
 import rospy
 import numpy as np
