@@ -5,10 +5,8 @@ Clone this package into your catkin workspace. I call mine `actor_ws`.
 git clone https://github.com/irisfield/fictitious_line_pkg.git ~/actor_ws/src
 ```
 
----
-
+Algorithm running on an Intel NUC inside a GEM e2.
 ![The fictitious middle line is in red](misc/hough_fictitious_middle_line.png)
-
 
 # Dependencies 
 Follow the instructions [here](https://github.com/irisfield/shifted_line_pkg#dependencies).
