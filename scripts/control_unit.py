@@ -38,7 +38,7 @@ def yellow_line_callback(yellow_line):
     global vel_msg, previous_time, start_with_dead_reckon_turn
 
     if RC.enable_drive:
-        if start_with_dead_reckon_turn and RC.shifted_outer:
+        if start_with_dead_reckon_turn and RC.shifted_outer and False:
             rospy.loginfo("FIRST DEAD RECKONING TURN SHIFTED OUTER")
 
             # drive forward a little
@@ -51,7 +51,7 @@ def yellow_line_callback(yellow_line):
 
             # start the timer
             previous_time = time_elapsed_secs
-        elif start_with_dead_reckon_turn:
+        elif start_with_dead_reckon_turn and False:
             rospy.loginfo("FIRST DEAD RECKONING TURN INNER MIDDLE")
 
             # drive forward a little
@@ -66,13 +66,13 @@ def yellow_line_callback(yellow_line):
             previous_time = time_elapsed_secs
 
         # wait 30 seconds after making the starting dead reckon before receiving yellow line messages
-        if yellow_line.data and (int(time_elapsed_secs - previous_time) > 30):
+        if yellow_line.data:
             if RC.shifted_outer:
 
                 rospy.loginfo("DEAD RECKONING TURN SHIFTED OUTER")
 
                 # drive to the yellow line
-                drive_duration(1.0, 0.0, 3.0)
+                drive_duration(1.0, 0.0, 5.0)
 
                 # stop at the yellow line
                 drive_duration(0.0, 0.0, 3.0)
