@@ -1,7 +1,10 @@
 # Algorithm 2: Fictitious Line Follow Using Proportional Yaw Rate and Hough Lines
 
 Running on an Intel NUC inside ACTor 1 at LTU.
-![The fictitious middle line is in red](misc/hough_fictitious_middle_line.png)
+
+<p align="center">
+  <img src="misc/hough_fictitious_middle_line.png"
+</p>
 
 # Install
 Clone this package into your catkin workspace and build it. I call mine `actor_ws`. 
