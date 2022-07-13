@@ -81,7 +81,7 @@ def yellow_line_callback(yellow_line):
                 drive_duration(1.0, 0.0, 3.0)
 
                 # drive the curve until it finds the outer lane
-                drive_duration(1.0, 0.12, 16.0)
+                drive_duration(1.0, 0.12, 15.0)
 
                 # start the timer
                 previous_time = time_elapsed_secs
